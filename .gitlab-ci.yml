@@ -1,0 +1,69 @@
+stages:
+  - minio-dev
+  - minio-new-dev
+  - minio-preprod
+  - minio-prod
+
+minio-dev:
+  stage: minio-dev
+  tags:
+    - sme-dev
+  image: 
+    name: alpine/k8s:1.22.9
+    entrypoint: [""]
+  before_script:
+    - mkdir -p ~/.kube/
+    - echo ${KUB_DEV} | base64 -d > ~/.kube/config
+    - chmod o-r ~/.kube/config
+    - chmod g-r ~/.kube/config
+  script:
+    - helm repo add minio https://charts.min.io/
+    - kubectl apply -f deployment/dev.yml
+    - helm upgrade --create-namespace --install minio helm -n minio-dev -f helm/dev.yml
+  only:
+    - main
+  when: manual
+
+minio-new-dev:
+  stage: minio-new-dev
+  tags:
+    - sme-new-dev
+  image: 
+    name: alpine/k8s:1.22.9
+    entrypoint: [""]
+  script:
+    - helm repo add minio https://charts.min.io/
+    - kubectl apply -f deployment/dev.yml
+    - helm upgrade --create-namespace --install minio helm -n minio-dev -f helm/dev.yml
+  only:
+    - main
+  when: manual
+
+minio-preprod:
+  stage: minio-preprod
+  tags:
+    - sme-preprod
+  image: 
+    name: alpine/k8s:1.22.9
+    entrypoint: [""]
+  script:
+    - helm repo add minio https://charts.min.io/
+    - kubectl apply -f deployment/preprod.yml
+    - helm upgrade --create-namespace --install minio helm -n minio-preprod -f helm/preprod.yml
+  only:
+    - main
+  when: manual
+
+minio-prod:
+  stage: minio-prod
+  tags:
+    - sme-prod
+  image: 
+    name: alpine/k8s:1.22.9
+    entrypoint: [""]
+  script:
+    - helm repo add minio https://charts.min.io/
+    - helm upgrade --create-namespace --install minio helm -n minio-prod -f helm/prod.yml
+  only:
+    - main
+  when: manual
